@@ -8,9 +8,12 @@ using System.Threading.Tasks;
 
 namespace NLayer.API.Controllers
 {
-    
+    [Route("api/[controller]")]
+    [ApiController]
+
     public class CustomBaseController : ControllerBase
     {
+
         [NonAction]
         public IActionResult CreateActionResult<T>(CustomResponseDTO<T> response)
         {

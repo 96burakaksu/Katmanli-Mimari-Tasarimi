@@ -21,6 +21,9 @@ using NLayer.Repostitory.Repositories;
 using NLayer.Core.Services;
 using NLayer.Service.Services;
 using NLayer.Service.Mapping;
+using FluentValidation.AspNetCore;
+using NLayer.Service.Validatinos;
+using NLayer.API.Filters;
 
 namespace NLayer.API
 {
@@ -37,9 +40,13 @@ namespace NLayer.API
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
+            services.AddControllers(options => { options.Filters.Add(new ValidateFilterAttribute()); }).AddFluentValidation(x => x.RegisterValidatorsFromAssemblyContaining<ProductDTOValidator>()) ;
+            services.Configure<ApiBehaviorOptions>(options =>
             {
+                options.SuppressModelStateInvalidFilter = true;
+            });
+            services.AddSwaggerGen(c =>
+            {  
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "NLayer.API", Version = "v1" });
             });
             services.AddDbContext<AppDbContext>(x =>
@@ -52,8 +59,12 @@ namespace NLayer.API
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped(typeof(IService<>), typeof(Service<>));
+
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IProductService, ProductService>();
+
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ICategoryService, CategoryService>();
 
             services.AddAutoMapper(typeof(MapProfile));
         }
@@ -69,6 +80,8 @@ namespace NLayer.API
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCustomExceptionHandler();
 
             app.UseRouting();
 
